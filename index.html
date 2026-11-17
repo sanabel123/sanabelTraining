@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Training 2026</title>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+  <style>
+    :root {
+      --red: #820700;
+      --sb: clamp(8.5rem, 15vw, 16rem)
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html {
+      font-size: clamp(12px, 1.05vw + 6px, 16px)
+    }
+
+    body {
+      margin: 0;
+      height: 100dvh;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: var(--sb) minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 43dvh) minmax(0, 1fr) auto;
+      grid-template-areas: "header header header" "nav animation heart" "nav lesson lesson" "nav footer footer";
+      font-family: "Times New Roman", Times, serif
+    }
+
+    svg {
+      width: 1em;
+      height: 1em;
+      flex: none
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+      cursor: pointer
+    }
+
+    /* header */
+    header {
+      grid-area: header;
+      background: var(--red);
+      color: #fff;
+      box-shadow: 0 2px 5px #0005;
+      z-index: 2
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: .4rem 1rem;
+      padding: .7rem 1rem
+    }
+
+    h1 {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      margin: 0;
+      font-size: 1.2rem
+    }
+
+    .logo {
+      width: 1.9rem;
+      height: 1.9rem;
+      padding: .3rem;
+      background: #fff;
+      color: var(--red);
+      border-radius: .45rem
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .2rem
+    }
+
+    .actions button {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      border: 0;
+      border-radius: .3rem;
+      background: var(--red);
+      padding: .4rem .6rem;
+      font: .85rem system-ui, sans-serif;
+      white-space: nowrap;
+      transition: background .15s
+    }
+
+    .actions button:hover {
+      background: #b3251c
+    }
+
+    #updates {
+      margin: 0;
+      padding: 0 3.5rem;
+      list-style: none;
+      max-height: 26dvh;
+      overflow: auto;
+      font-size: .8rem
+    }
+
+    #updates li {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      line-height: 1.5
+    }
+
+    #updates li:last-child {
+      margin-bottom: .45rem
+    }
+
+    #updates button {
+      border: 0;
+      background: none;
+      color: #000;
+      padding: 0 .3rem;
+      font-size: .9rem;
+      line-height: 1
+    }
+
+    /* sidebar */
+    aside {
+      grid-area: nav;
+      position: relative;
+      background: #efefef;
+      border-inline-end: 1px solid #ddd;
+      min-height: 0
+    }
+
+    nav {
+      height: 100%;
+      overflow: auto;
+      padding: .4rem 0
+    }
+
+    nav a {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      padding: .55rem .9rem;
+      font: .78rem system-ui, sans-serif;
+      color: #222;
+      text-decoration: none;
+      white-space: nowrap
+    }
+
+    nav a:hover,
+    nav a.on {
+      background: #ddd
+    }
+
+    nav svg {
+      font-size: 1.15rem;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round
+    }
+
+    #grip {
+      position: absolute;
+      inset-block: 0;
+      inset-inline-end: -3px;
+      width: 7px;
+      cursor: col-resize;
+      z-index: 3
+    }
+
+    #grip:hover,
+    #grip.drag {
+      background: #82070055
+    }
+
+    /* hero */
+    .animation {
+      grid-area: animation;
+      position: relative;
+      overflow: hidden;
+      direction: ltr;
+      container-type: size;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(#a70804, #710500);
+      color: #fff
+    }
+
+    .animation h2 {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      font-size: clamp(1rem, 3.2cqw, 1.6rem);
+      text-shadow: 0 2px 4px #0009;
+      text-align: center
+    }
+
+    .track {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 200%;
+      animation: slide 11s linear infinite
+    }
+
+    @keyframes slide {
+      to {
+        transform: translateX(-50%)
+      }
+    }
+
+    .track i {
+      position: absolute;
+      left: calc(var(--x)*1cqw);
+      top: calc(var(--y)*1cqh);
+      height: calc(var(--s)*1cqh);
+      aspect-ratio: 1;
+      border-radius: 5% 30%;
+      background: rgb(255 255 255/var(--o, .22))
+    }
+
+    .track i.o {
+      background: none;
+      border: calc(var(--b, .5)*1cqh) solid rgb(255 255 255/var(--o, .3))
+    }
+
+    .heart {
+      grid-area: heart;
+      position: relative;
+      background: #f5f5f5;
+      min-width: 0;
+      overflow: hidden
+    }
+
+    #mv {
+      width: 100%;
+      height: 100%;
+      --poster-color: transparent;
+      background: #f5f5f5
+    }
+
+    #msg {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-content: center;
+      justify-items: center;
+      gap: .6rem;
+      padding: 1rem;
+      text-align: center;
+      font: .85rem system-ui, sans-serif;
+      color: #555
+    }
+
+    #msg label {
+      padding: .4rem .8rem;
+      border-radius: .3rem;
+      background: var(--red);
+      color: #fff;
+      cursor: pointer
+    }
+
+    .zoom {
+      position: absolute;
+      inset-block-end: .5rem;
+      inset-inline-end: .5rem;
+      display: flex;
+      gap: .25rem
+    }
+
+    .zoom button {
+      width: 1.8rem;
+      height: 1.8rem;
+      display: grid;
+      place-items: center;
+      border: 1px solid #ccc;
+      border-radius: .3rem;
+      background: #fff;
+      font: .75rem system-ui, sans-serif;
+      cursor: pointer
+    }
+
+    #msg {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 1rem;
+      text-align: center;
+      font: .85rem system-ui, sans-serif;
+      color: #555
+    }
+
+    /* lesson */
+    main {
+      grid-area: lesson;
+      overflow: auto;
+      padding: 0 1rem .75rem
+    }
+
+    main h2 {
+      margin: 1rem 0 .7rem
+    }
+
+    main h3 {
+      margin: .8rem 0 .65rem
+    }
+
+    main p {
+      margin: 0 0 .7rem;
+      font-size: .94rem
+    }
+
+    .topic {
+      display: flex;
+      align-items: center;
+      gap: 1rem
+    }
+
+    .badge {
+      flex: 0 0 4.6rem;
+      height: 4.6rem;
+      display: grid;
+      place-items: center;
+      border-radius: .45rem;
+      color: #fff;
+      font: bold 1.25rem system-ui, sans-serif
+    }
+
+    footer {
+      grid-area: footer;
+      padding: .55rem 1rem;
+      border-top: 1px solid #ddd;
+      color: #555;
+      text-align: center;
+      font-size: .75rem
+    }
+
+    #fab {
+      position: fixed;
+      inset-inline-end: 1.5rem;
+      bottom: .7rem;
+      z-index: 4;
+      width: 2.85rem;
+      height: 2.85rem;
+      border: 0;
+      border-radius: 50%;
+      background: var(--red);
+      color: #fff;
+      font: 1.6rem/1 system-ui, sans-serif;
+      box-shadow: 0 2px 6px #0005;
+      transition: background .2s, transform .2s
+    }
+
+    #fab:hover {
+      background: #c2362b;
+      transform: scale(1.1)
+    }
+
+    @media(prefers-reduced-motion:reduce) {
+      .track {
+        animation: none
+      }
+
+      #fab {
+        transition: none
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="toolbar">
+      <h1><svg class="logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+          <path d="m2 9 10-5 10 5-10 5-10-5Zm4 2v5q6 5 12 0v-5m4-2v7" />
+        </svg><span data-i18n="title">Training 2026</span></h1>
+      <div class="actions">
+        <button id="lang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" />
+          </svg><span></span></button>
+        <button id="add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14" />
+          </svg><span data-i18n="add">Add content</span></button>
+        <button id="clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
+          </svg><span data-i18n="clear">Clear content</span></button>
+      </div>
+    </div>
+    <ul id="updates" aria-live="polite"></ul>
+  </header>
+
+  <aside>
+    <nav id="nav" aria-label="Training topics"></nav>
+    <div id="grip" role="separator" aria-orientation="vertical"></div>
+  </aside>
+
+  <section class="animation" id="anim" aria-label="CSS animation">
+    <div class="track" id="track" aria-hidden="true"></div>
+    <h2>CSS Animation</h2>
+  </section>
+
+  <section class="heart" id="heart" aria-label="3D heart">
+    <model-viewer id="mv" src="human-heart.glb" alt="3D human heart" camera-controls auto-rotate auto-rotate-delay="0"
+      rotation-per-second="20deg" touch-action="pan-y" shadow-intensity="1" exposure="1.1" interaction-prompt="none"
+      camera-orbit="0deg 80deg auto" min-camera-orbit="auto auto 0.1m" max-camera-orbit="auto auto 1m"></model-viewer>
+    <div id="msg"><span>The heart model could not be loaded.<br>Keep <b>human-heart.glb</b> next to this file and open
+        the page through a local server (e.g. VS Code Live Server), or load it manually:</span><label>Choose
+        human-heart.glb<input id="file" type="file" accept=".glb,.gltf" hidden></label></div>
+    <div class="zoom"><button id="zi" aria-label="Zoom in">+</button><button id="zo"
+        aria-label="Zoom out">−</button><button id="zr" aria-label="Reset">↺</button></div>
+  </section>
+
+  <main>
+    <h2>HTML, CSS &amp; JavaScript</h2>
+    <p>The web platform is built on three complementary technologies. Each has a distinct job, and together they form
+      every page you browse.</p>
+    <h3>HTML</h3>
+    <div class="topic"><span class="badge" style="background:#e44d26">HTML</span>
+      <p>HTML (HyperText Markup Language) provides the structure of a page: headings, paragraphs, links, images, and
+        forms. It gives the browser a document to render and gives assistive tools something meaningful to read.</p>
+    </div>
+    <h3>CSS</h3>
+    <div class="topic"><span class="badge" style="background:#264de4">CSS</span>
+      <p>CSS (Cascading Style Sheets) controls presentation: layout, color, spacing, typography, and responsiveness. It
+        lets the same HTML adapt to different screen sizes and themes without changing the markup.</p>
+    </div>
+    <h3>JavaScript</h3>
+    <div class="topic"><span class="badge" style="background:#f7df1e;color:#222">JS</span>
+      <p>JavaScript adds behavior. It runs in the browser to respond to user interaction, update the page without a
+        reload, fetch data from a server, and tie HTML and CSS together into an interactive experience.</p>
+    </div>
+    <h3>How they work together</h3>
+    <p>A browser parses HTML into the DOM, applies CSS rules to determine how each element looks, and runs JavaScript to
+      modify both the DOM and the styles over time. Changing text, hiding an element, or reacting to click all rely on
+      this pipeline.</p>
+    <p>This separation of concerns - structure, presentation, and behavior - is why the same three technologies still
+      power everything from simple static pages to complex single-page applications today.</p>
+  </main>
+  <footer data-i18n="foot">© 2026 Training 2026. All rights reserved.</footer>
+  <button id="fab" aria-label="Add content">+</button>
+
+  <script>
+    const T = {
+      en: {
+        title: 'Training 2026', add: 'Add content', clear: 'Clear content', upd: 'Update', lang: 'العربية', foot: '© 2026 Training 2026. All rights reserved.',
+        nav: ['Dashboard', 'HTML Editor', 'CSS Styles', 'JS Console', 'Components', 'Templates', 'Snippets', 'Projects', 'Live Preview', 'Responsive Design', 'Color Palette', 'Typography', 'Animations', 'Debugger', 'Settings']
+      },
+      ar: {
+        title: 'تدريب 2026', add: 'أضف محتوى', clear: 'امسح المحتوى', upd: 'تحديث', lang: 'English', foot: '© 2026 تدريب 2026. جميع الحقوق محفوظة.',
+        nav: ['لوحة التحكم', 'محرر HTML', 'أنماط CSS', 'وحدة JS', 'المكونات', 'القوالب', 'المقتطفات', 'المشاريع', 'معاينة مباشرة', 'التصميم المتجاوب', 'لوحة الألوان', 'الخطوط', 'الحركات', 'المصحح', 'الإعدادات']
+      }
+    };
+    const ICONS = ['M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z', 'M8 7l-5 5 5 5M16 7l5 5-5 5', 'M4 20l4-1L19 8l-3-3L5 16z', 'M3 5h18v14H3zM7 9l3 3-3 3M12 15h5', 'M4 4h7v7H4zM13 13h7v7h-7z', 'M4 4h16v6H4zM4 14h7v6H4zM14 14h6v6h-6z', 'M9 7L4 12l5 5M15 7l5 5-5 5', 'M3 7h7l2 2h9v11H3z', 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 100 6 3 3 0 000-6', 'M3 5h18v11H3zM8 20h8', 'M12 3a9 9 0 100 18c2 0 2-2 1-3s0-3 2-3h3a3 3 0 003-3c0-5-4-9-9-9z', 'M5 5h14M12 5v14M8 19h8', 'M12 3l4 8-4 10-4-10z', 'M9 9h6v6H9zM12 3v3M12 18v3M3 12h3M18 12h3', 'M12 8a4 4 0 100 8 4 4 0 000-8zM12 2v3M12 19v3M2 12h3M19 12h3'];
+    const COL = ['#3b82f6', '#22a06b', '#f59e0b', '#ec4899'];
+    const $ = s => document.querySelector(s);
+    let lang = 'en', updates = [], counter = 0;
+
+    /* sidebar */
+    $('#nav').innerHTML = ICONS.map((d, i) => `<a href="#" data-k="${i}" style="--c:${COL[i % 4]}"><svg viewBox="0 0 24 24" style="color:${COL[i % 4]}"><path d="${d}"/></svg><span></span></a>`).join('');
+    $('#nav').addEventListener('click', e => { const a = e.target.closest('a'); if (!a) return; e.preventDefault(); document.querySelectorAll('#nav a').forEach(x => x.classList.toggle('on', x === a)) });
+    const grip = $('#grip');
+    grip.addEventListener('pointerdown', e => { grip.setPointerCapture(e.pointerId); grip.classList.add('drag') });
+    grip.addEventListener('pointermove', e => {
+      if (!grip.hasPointerCapture(e.pointerId)) return;
+      const r = grip.parentElement.getBoundingClientRect(), w = lang === 'ar' ? r.right - e.clientX : e.clientX - r.left;
+      document.documentElement.style.setProperty('--sb', Math.max(110, Math.min(innerWidth * .45, 360, w)) + 'px');
+    });
+    grip.addEventListener('pointerup', e => { grip.releasePointerCapture(e.pointerId); grip.classList.remove('drag') });
+
+    /* CSS animation: shapes [x cqw, y cqh, size cqh, outline?, opacity, border]; two identical sets make a seamless right-to-left loop */
+    const SHAPES = [[21, 18, 38, 0, .25], [48, -7, 47, 0, .15], [76, 24, 65, 1, .3, 2.5], [6, 57, 26, 0, .22], [47, 60, 28, 0, .2], [25, 81, 43, 0, .12], [75, 16, 11, 1, .25, .4], [69, 46, 7, 1, .25, .4]];
+    $('#track').innerHTML = [0, 100].flatMap(o => SHAPES.map(([x, y, s, out, op, b]) => `<i class="${out ? 'o' : ''}" style="--x:${x + o};--y:${y};--s:${s};--o:${op};--b:${b || 0}"></i>`)).join('');
+
+    /* updates */
+    function renderUpdates() {
+      const ul = $('#updates'); ul.innerHTML = '';
+      updates.forEach(n => {
+        const li = document.createElement('li'); li.innerHTML = `<span>${T[lang].upd} ${n}</span><button aria-label="Remove">✕</button>`;
+        li.querySelector('button').onclick = () => { updates = updates.filter(x => x !== n); renderUpdates() }; ul.append(li)
+      });
+    }
+    $('#add').onclick = $('#fab').onclick = () => { updates.push(++counter); renderUpdates() };
+    $('#clear').onclick = () => { updates = []; counter = 0; renderUpdates() };
+
+    /* language */
+    function applyLang() {
+      const t = T[lang], d = document.documentElement; d.lang = lang; d.dir = lang === 'ar' ? 'rtl' : 'ltr';
+      document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t[el.dataset.i18n]);
+      document.querySelectorAll('#nav a').forEach(a => a.lastElementChild.textContent = t.nav[a.dataset.k]);
+      $('#lang span').textContent = t.lang; renderUpdates();
+    }
+    $('#lang').onclick = () => { lang = lang === 'en' ? 'ar' : 'en'; applyLang() };
+    applyLang();
+  </script>
+
+  <script>
+    /* Heart: Google <model-viewer> loads human-heart.glb (same folder). Drag = rotate, wheel/pinch/buttons = zoom. */
+    (() => {
+      const mv = document.getElementById('mv'), msg = document.getElementById('msg');
+      mv.addEventListener('error', () => { mv.style.visibility = 'hidden'; msg.style.display = 'grid' });
+      document.getElementById('file').onchange = e => { const f = e.target.files[0]; if (f) { mv.src = URL.createObjectURL(f); mv.style.visibility = ''; msg.style.display = 'none' } };
+      const zoom = f => { const o = mv.getCameraOrbit(); mv.cameraOrbit = `${o.theta}rad ${o.phi}rad ${o.radius * f}m` };
+      document.getElementById('zi').onclick = () => zoom(.8); document.getElementById('zo').onclick = () => zoom(1.25);
+      document.getElementById('zr').onclick = () => { mv.cameraOrbit = '0deg 80deg auto'; mv.fieldOfView = 'auto'; mv.jumpCameraToGoal() };
+    })();
+  </script>
+</body>
+
+</html>

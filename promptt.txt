@@ -1,0 +1,131 @@
+TASK: Build "Training 2026", a responsive single-page web app, as ONE self-contained HTML file (index.html) using only vanilla HTML, CSS and JavaScript. No frameworks, no build step, no other CSS/JS files. The only external dependency allowed is Google's <model-viewer> web component, loaded from this CDN in the <head>:
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+I will place a 3D heart file named human-heart.glb in the same folder as index.html. Return the complete, ready-to-run code and nothing else (no explanation, no pseudocode, no omitted parts). Every button and interaction must really work. Use inline SVG icons only (no emoji, no icon fonts, no images).
+
+====================================================
+1. OVERALL LAYOUT (CSS GRID, NEVER STACKS)
+====================================================
+- <html lang="en" dir="ltr">. The page fills the viewport and never scrolls as a whole: body { margin:0; height:100dvh; overflow:hidden; display:grid; }
+- Body grid:
+  grid-template-columns: var(--sb) minmax(0,1fr) minmax(0,1fr);
+  grid-template-rows: auto minmax(0,43dvh) minmax(0,1fr) auto;
+  grid-template-areas:
+    "header header header"
+    "nav animation heart"
+    "nav lesson lesson"
+    "nav footer footer";
+  with :root { --red:#820700; --sb: clamp(8.5rem, 15vw, 16rem); }
+- So: header across the top; the sidebar runs the full remaining height on the left (from the bottom of the header to the bottom of the screen); the two hero panels (CSS animation left, 3D heart right) sit side by side above the lesson content; the footer is only under the main area (not under the sidebar).
+- RESPONSIVE RULE (very important): the layout must look IDENTICAL on large and small windows. Do NOT use media queries that stack columns, hide the sidebar, or turn it into a drawer. Everything just scales down: html { font-size: clamp(12px, 1.05vw + 6px, 16px); } and all sizes use rem/clamp/min-width:0 so nothing overflows. No horizontal scrollbar at any width from 320px to 1920px. The only media query allowed is prefers-reduced-motion.
+- Use box-sizing:border-box everywhere. svg { width:1em; height:1em; flex:none }.
+- Body font: "Times New Roman", Times, serif (the lesson, header title and animation title use this serif font). Buttons, sidebar labels and the footer small UI text use system-ui, sans-serif.
+
+====================================================
+2. HEADER (grid-area: header)
+====================================================
+- Background var(--red) (#820700), white text, box-shadow: 0 2px 5px #0005, z-index 2.
+- Toolbar row (display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.4rem 1rem; padding:.7rem 1rem):
+  LEFT: <h1> (font-size 1.2rem, margin 0, flex, gap .65rem) containing a small white rounded-square logo (1.9rem x 1.9rem, padding .3rem, background white, color var(--red), border-radius .45rem) with an inline SVG graduation cap (path: m2 9 10-5 10 5-10 5-10-5Zm4 2v5q6 5 12 0v-5m4-2v7, stroke currentColor, stroke-width 1.7, fill none), followed by the text "Training 2026".
+  RIGHT: three buttons in a flex row (gap .2rem, wrap allowed):
+    1) Language button: a globe SVG icon (circle r=9 plus meridian curves) placed BEFORE the label; label is "العربية" in English mode and "English" in Arabic mode.
+    2) "Add content" button with a plus SVG icon.
+    3) "Clear content" button with a trash-can SVG icon.
+  Button style: no border, border-radius .3rem, padding .4rem .6rem, font .85rem system-ui, white text, display:inline-flex, align-items:center, gap .4rem, white-space:nowrap. The buttons are the SAME RED as the header (background var(--red)), so they look flat/transparent; on hover the background becomes a lighter red (#b3251c) with a short transition (.15s).
+- Below the toolbar, inside the header, a <ul id="updates" aria-live="polite"> (no bullets, margin 0, padding 0 3.5rem, font-size .8rem, max-height 26dvh, overflow:auto). Each added item is an <li> (flex, gap .5rem, line-height 1.5) with the plain white text "Update N" and, right after it, a small BLACK "✕" button (no border, no background, color #000, font-size .9rem). Items are listed VERTICALLY, one under the other (never side by side). The last item has margin-bottom .45rem. The header grows in height automatically as items are added (no hard-coded header height); the rest of the page moves down naturally.
+- "Add content" and the floating "+" button both append a new item numbered with an ever-increasing counter (Update 1, Update 2, ...). Clicking an item's ✕ removes only that item. "Clear content" removes all items and resets the counter to 0. The original page content is never deleted.
+
+====================================================
+3. SIDEBAR (grid-area: nav) - RESIZABLE
+====================================================
+- <aside> (position:relative; background #efefef; border-inline-end:1px solid #ddd; min-height:0) containing a <nav> (height:100%; overflow:auto; padding:.4rem 0) so the menu scrolls independently when it is too tall.
+- 15 items, in this order, each is a link row (display:flex; align-items:center; gap:.7rem; padding:.55rem .9rem; font .78rem system-ui; color #222; no underline; white-space:nowrap) with a small colored LINE icon (inline SVG, 24x24 viewBox, fill none, stroke currentColor, stroke-width 1.8, round caps/joins, font-size 1.15rem, NO background square) and a label:
+  1 Dashboard (grid of 4 squares)
+  2 HTML Editor (< > brackets)
+  3 CSS Styles (pencil)
+  4 JS Console (terminal box with prompt)
+  5 Components (two overlapping squares)
+  6 Templates (layout blocks)
+  7 Snippets (< > brackets)
+  8 Projects (folder)
+  9 Live Preview (eye)
+  10 Responsive Design (monitor)
+  11 Color Palette (palette)
+  12 Typography (T)
+  13 Animations (diamond/drop)
+  14 Debugger (square with crosshair ticks)
+  15 Settings (circle with ticks)
+  Icon colors cycle through 4 colors by index (i % 4): #3b82f6 (blue), #22a06b (green), #f59e0b (orange), #ec4899 (pink).
+- Hover and active ("on") state: background #ddd. Clicking an item (preventDefault) marks only that item active.
+- Resizing: a thin vertical handle (<div id="grip" role="separator">, position:absolute; top to bottom; inset-inline-end:-3px; width:7px; cursor:col-resize; z-index 3; background rgba(130,7,0,.33) on hover/dragging) on the sidebar's inner edge. Implement with JavaScript pointer events (pointerdown -> setPointerCapture, pointermove -> update, pointerup -> release). Update the CSS variable --sb on the root. Width = pointer distance from the sidebar's start edge (in Arabic/RTL measure from the right edge). Clamp between 110px and min(45% of window width, 360px). The main content adapts automatically through the grid.
+
+====================================================
+4. HERO LEFT: THE "CSS ANIMATION" PANEL (grid-area: animation)  -- EXACT ANIMATION
+====================================================
+- A section with: position:relative; overflow:hidden (shapes are clipped inside); direction:ltr (always, even in RTL mode); container-type:size; display:grid; place-items:center; background: linear-gradient(#a70804, #710500) (vertical, brighter red at top, darker red at bottom); color white.
+- The text "CSS Animation" is an <h2> with position:relative; z-index:1; margin:0; font-size: clamp(1rem, 3.2cqw, 1.6rem); bold serif (default h2 weight); text-shadow: 0 2px 4px #0009; text-align:center. It is perfectly centered by the grid, never moves, and stays above the shapes.
+- The moving shapes live inside a <div class="track"> (aria-hidden) positioned absolute at inset:0 auto 0 0 with width:200%, animated with: @keyframes slide { to { transform: translateX(-50%); } } animation: slide 11s linear infinite. Because the track is 200% wide and moves by -50% (= one panel width), the shapes move horizontally from RIGHT TO LEFT, at constant speed, entering from the right edge and leaving through the left edge, in a seamless endless loop. There is no vertical movement, no rotation, no bouncing.
+- To make the loop seamless, generate the shapes with JavaScript from a data array and render TWO identical copies of the set: the second copy is shifted by +100 in x (i.e. x + 100).
+- Each shape is an <i> element with absolutely positioned geometry expressed in CONTAINER units so it scales with the panel: left: calc(var(--x) * 1cqw); top: calc(var(--y) * 1cqh); height: calc(var(--s) * 1cqh); aspect-ratio:1 (so shapes are squares); border-radius: 5% 30% (this gives the distinctive leaf-like rounded square: small radius on top-left and bottom-right, large radius on top-right and bottom-left); filled shapes: background rgb(255 255 255 / var(--o)).
+- Outlined shapes (class "o"): background:none; border: calc(var(--b) * 1cqh) solid rgb(255 255 255 / var(--o)).
+- Shape data, format [x (cqw), y (cqh), size (cqh), outlined? (0/1), opacity, border thickness (cqh, outlined only)]:
+  [21, 18, 38, 0, .25]            medium filled square, light
+  [48, -7, 47, 0, .15]            large filled square, partly cut off at the top, faint
+  [76, 24, 65, 1, .30, 2.5]       very large OUTLINED rounded square with a thick outline
+  [6, 57, 26, 0, .22]             small filled square
+  [47, 60, 28, 0, .20]            small filled square
+  [25, 81, 43, 0, .12]            large filled square, mostly cut off at the bottom, very faint
+  [75, 16, 11, 1, .25, .4]        tiny outlined square with a thin outline
+  [69, 46, 7, 1, .25, .4]         tiny outlined square with a thin outline
+  Shapes of different sizes, opacities and fill/outline types give depth. Some are partially outside the panel, and they are clipped by overflow:hidden.
+- @media (prefers-reduced-motion: reduce) { .track { animation:none } } (shapes stay still).
+
+====================================================
+5. HERO RIGHT: INTERACTIVE 3D HEART (grid-area: heart)
+====================================================
+- A section (position:relative; background:#f5f5f5; min-width:0; overflow:hidden) filling its grid cell with equal width and height to the animation panel.
+- Inside, a <model-viewer id="mv" src="human-heart.glb" alt="3D human heart"> that fills the section (width:100%; height:100%; background #f5f5f5; --poster-color: transparent) with these attributes: camera-controls, auto-rotate, auto-rotate-delay="0", rotation-per-second="20deg", touch-action="pan-y", shadow-intensity="1", exposure="1.1", interaction-prompt="none", camera-orbit="0deg 80deg auto", min-camera-orbit="auto auto 0.1m", max-camera-orbit="auto auto 1m". The heart is centered, auto-rotates slowly, can be rotated by dragging (mouse and touch), and zoomed with the mouse wheel or pinch.
+- Small zoom controls in the bottom-inline-end corner of the section (position:absolute; inset-block-end:.5rem; inset-inline-end:.5rem; flex; gap .25rem): three buttons 1.8rem x 1.8rem (white background, 1px solid #ccc border, border-radius .3rem, font .75rem system-ui): "+" zoom in, "−" zoom out, "↺" reset. Zoom in/out: read mv.getCameraOrbit() and set mv.cameraOrbit = `${theta}rad ${phi}rad ${radius * factor}m` with factor .8 (in) and 1.25 (out). Reset: mv.cameraOrbit='0deg 80deg auto'; mv.fieldOfView='auto'; mv.jumpCameraToGoal().
+- Graceful fallback: an overlay <div id="msg"> (position:absolute; inset:0; hidden by default; grid centered; text-align:center; font .85rem system-ui; color #555) that is shown (and the viewer hidden with visibility:hidden) when model-viewer fires its "error" event. It says: "The heart model could not be loaded. Keep human-heart.glb next to this file and open the page through a local server (e.g. VS Code Live Server), or load it manually:" followed by a red (#820700, white text, border-radius .3rem, padding .4rem .8rem) label-button "Choose human-heart.glb" wrapping a hidden <input type="file" accept=".glb,.gltf">. Choosing a file sets mv.src to URL.createObjectURL(file), shows the viewer again and hides the message.
+
+====================================================
+6. LESSON CONTENT (grid-area: lesson)
+====================================================
+- <main> scrolls on its own (overflow:auto; padding:0 1rem .75rem). Headings: h2 margin 1rem 0 .7rem; h3 margin .8rem 0 .65rem; paragraphs margin 0 0 .7rem, font-size .94rem. Serif font. Use EXACTLY this wording:
+
+  <h2> HTML, CSS & JavaScript
+  <p> The web platform is built on three complementary technologies. Each has a distinct job, and together they form every page you browse.
+  <h3> HTML
+  [badge] <p> HTML (HyperText Markup Language) provides the structure of a page: headings, paragraphs, links, images, and forms. It gives the browser a document to render and gives assistive tools something meaningful to read.
+  <h3> CSS
+  [badge] <p> CSS (Cascading Style Sheets) controls presentation: layout, color, spacing, typography, and responsiveness. It lets the same HTML adapt to different screen sizes and themes without changing the markup.
+  <h3> JavaScript
+  [badge] <p> JavaScript adds behavior. It runs in the browser to respond to user interaction, update the page without a reload, fetch data from a server, and tie HTML and CSS together into an interactive experience.
+  <h3> How they work together
+  <p> A browser parses HTML into the DOM, applies CSS rules to determine how each element looks, and runs JavaScript to modify both the DOM and the styles over time. Changing text, hiding an element, or reacting to click all rely on this pipeline.
+  <p> This separation of concerns - structure, presentation, and behavior - is why the same three technologies still power everything from simple static pages to complex single-page applications today.
+
+- Each topic row (HTML, CSS, JavaScript) is a flex row (align-items:center; gap 1rem): a square badge on the LEFT and the description beside it on the right. Badge: flex:0 0 4.6rem; height 4.6rem; border-radius .45rem; centered bold 1.25rem system-ui white text. HTML badge: background #e44d26 with the text "HTML". CSS badge: background #264de4 with the text "CSS". JavaScript badge: background #f7df1e with dark text (#222) "JS". The rows stay side by side at all window sizes.
+
+====================================================
+7. FOOTER (grid-area: footer)
+====================================================
+- padding .55rem 1rem; border-top:1px solid #ddd; color #555; text-align:center; font-size .75rem. Text: "© 2026 Training 2026. All rights reserved." It stays visible at the bottom of the app area (it is a grid row, so the main content scrolls above it and never goes under it).
+
+====================================================
+8. FLOATING PLUS BUTTON
+====================================================
+- <button id="fab" aria-label="Add content">+</button>, position:fixed; bottom:.7rem; inset-inline-end:1.5rem (so it is bottom-right in English and bottom-left in Arabic); z-index 4; 2.85rem circle; no border; background var(--red); white "+" (font 1.6rem/1 system-ui); box-shadow 0 2px 6px #0005; cursor:pointer; transition: background .2s, transform .2s. On hover: background becomes LIGHTER red (#c2362b) AND the button scales to 1.1. It triggers the same "Add content" action as the header button. It stays visible while scrolling. With prefers-reduced-motion, remove its transition.
+
+====================================================
+9. ARABIC / ENGLISH TOGGLE
+====================================================
+- Initial state English / LTR. The language button toggles. A JavaScript dictionary object T = { en:{...}, ar:{...} } (NOT random text replacement) holds the keys: title, add, clear, upd (the word used in "Update N"), lang (the button label), foot, and nav (array of 15 sidebar labels). Elements use data-i18n attributes; one function applyLang() sets document.documentElement.lang and .dir ('ltr' or 'rtl'), fills all data-i18n texts, the 15 sidebar labels, the language button label, and re-renders the update list.
+- Arabic values: title "تدريب 2026"; add "أضف محتوى"; clear "امسح المحتوى"; upd "تحديث"; lang "English" (English mode shows "العربية"); foot "© 2026 تدريب 2026. جميع الحقوق محفوظة."; nav = ["لوحة التحكم","محرر HTML","أنماط CSS","وحدة JS","المكونات","القوالب","المقتطفات","المشاريع","معاينة مباشرة","التصميم المتجاوب","لوحة الألوان","الخطوط","الحركات","المصحح","الإعدادات"].
+- In RTL the whole grid mirrors automatically (sidebar on the right, hero panels swapped, floating button bottom-left, update list aligned to the right) because logical properties (border-inline-end, inset-inline-end) are used. The lesson text (English) simply follows the direction. The animation panel keeps direction:ltr so its right-to-left motion never changes. The sidebar resize handle must also work in RTL. Switching language must not break the animation, the 3D model, resizing or scrolling. Switching back to English restores everything.
+
+====================================================
+10. QUALITY REQUIREMENTS
+====================================================
+- Clean, readable, organized code with short comments for each section (header, sidebar, animation, heart, lesson, footer, scripts), using semantic tags (header, aside, nav, section, main, footer). Minimal DOM, no needless wrapper divs, no code repetition.
+- Scripts: one regular <script> for sidebar, animation shapes, updates and language; one small <script> for the heart (model-viewer error fallback, file picker, zoom buttons).
+- Output exactly one complete HTML file.
